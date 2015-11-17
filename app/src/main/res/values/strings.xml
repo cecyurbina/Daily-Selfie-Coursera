@@ -4,6 +4,8 @@
     <string name="action_login">Login</string>
     <string name="action_logout">Log out</string>
     <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_image">Image</string>
+
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>

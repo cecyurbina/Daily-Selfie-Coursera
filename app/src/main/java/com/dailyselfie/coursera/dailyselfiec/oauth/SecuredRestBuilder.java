@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-import com.dailyselfie.coursera.dailyselfiec.MainActivity;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

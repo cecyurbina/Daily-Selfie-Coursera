@@ -96,7 +96,10 @@ public class ImageStorageUtils {
         FileOutputStream fos = null;
         try {
             Bitmap bm = BitmapFactory.decodeFile(f.getAbsolutePath());
-            Bitmap resized = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(f.getPath()), 100, 100);
+            final BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = 8;
+            Bitmap bmResized = BitmapFactory.decodeFile(f.getPath(),options);
+            Bitmap resized = ThumbnailUtils.extractThumbnail(bmResized, 50, 50);
             writeFile(resized, mediaFileThumb);
             writeFile(bm, mediaFile);
         } catch(Exception ex){

@@ -1,4 +1,4 @@
-package com.dailyselfie.coursera.dailyselfiec.view;
+package com.dailyselfie.coursera.dailyselfiec.view.ui;
 
 import android.content.Context;
 import android.graphics.Bitmap;

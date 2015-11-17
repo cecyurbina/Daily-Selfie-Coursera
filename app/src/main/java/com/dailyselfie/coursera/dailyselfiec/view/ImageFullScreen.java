@@ -1,4 +1,4 @@
-package com.dailyselfie.coursera.dailyselfiec.view.ui;
+package com.dailyselfie.coursera.dailyselfiec.view;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -19,7 +19,9 @@ public class ImageFullScreen extends AppCompatActivity {
         imageView = (ImageView) findViewById(R.id.imageView);
         Intent intent = getIntent();
         String message = intent.getStringExtra("uri");
-        Bitmap bMap = BitmapFactory.decodeFile(message);
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = 8;
+        Bitmap bMap = BitmapFactory.decodeFile(message, options);
         imageView.setImageBitmap(bMap);
     }
 }
