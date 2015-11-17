@@ -3,7 +3,10 @@ package com.dailyselfie.coursera.dailyselfiec.view;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -32,7 +35,9 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.dailyselfie.coursera.dailyselfiec.R;
+import com.dailyselfie.coursera.dailyselfiec.*;
+import com.dailyselfie.coursera.dailyselfiec.model.mediator.ImageDataMediator;
+import com.dailyselfie.coursera.dailyselfiec.model.mediator.webdata.Video;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -63,6 +68,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    public static Context contextOfApplication;
+    private ImageDataMediator idm;
+    private String userInput;
+    private String passInput;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +99,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
                 attemptLogin();
+                contextOfApplication = getApplicationContext();
             }
         });
 
@@ -146,6 +157,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * errors are presented and no actual login attempt is made.
      */
     private void attemptLogin() {
+
+        //put token in null to save another users token
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
+                getApplicationContext());//token saved
+        prefs.edit().putString("token", null).commit();
+        prefs.edit().putString("user", null).commit();
+
+
         if (mAuthTask != null) {
             return;
         }
@@ -157,6 +176,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // Store values at the time of the login attempt.
         String user = mUserView.getText().toString();
         String password = mPasswordView.getText().toString();
+        userInput = user;
+        passInput = password;
+        idm = new ImageDataMediator(userInput, passInput);
+
 
         boolean cancel = false;
         View focusView = null;
@@ -199,7 +222,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
-        return password.length() > 4;
+        return true;
     }
 
     /**
@@ -300,6 +323,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         private final String mEmail;
         private final String mPassword;
+        private List<Video> listImage = null;
+
 
         UserLoginTask(String email, String password) {
             mEmail = email;
@@ -310,7 +335,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
 
-            try {
+            /*try {
                 // Simulate network access.
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
@@ -323,17 +348,24 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     // Account exists, return true if the password matches.
                     return pieces[1].equals(mPassword);
                 }
-            }
+            }*/
+
+            listImage = idm.getVideoList();
+
 
             // TODO: register the new account here.
             return true;
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
+        protected void onPostExecute(Boolean success) {
             mAuthTask = null;
             showProgress(false);
-
+            if (listImage == null){
+                success = false;
+            } else {
+                success = true;
+            }
             if (success) {
                 finish();
             } else {
@@ -347,6 +379,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
             showProgress(false);
         }
+    }
+
+    public static Context getContextOfApplication(){
+        return contextOfApplication;
     }
 }
 
