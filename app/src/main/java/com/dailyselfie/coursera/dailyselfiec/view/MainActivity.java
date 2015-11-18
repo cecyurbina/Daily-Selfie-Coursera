@@ -1,7 +1,9 @@
 package com.dailyselfie.coursera.dailyselfiec.view;
 
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,6 +13,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.MenuInflater;
 import android.view.View;
@@ -40,7 +43,10 @@ public class MainActivity extends AppCompatActivity {
     private ListView listView;
     private List<RowData> listSelfies = new ArrayList<>();
     private CustomAdapter customAdapter;
-    private AlertDialog dialogEffects;
+    // arraylist to keep the selected items
+    final List<Integer> selectedEffects =new ArrayList();
+    final List<String> selectedImages =new ArrayList();
+
 
 
     @Override
@@ -137,14 +143,15 @@ public class MainActivity extends AppCompatActivity {
             public void onItemCheckedStateChanged(ActionMode mode,
                                                   int position, long id, boolean checked) {
                 RowData hi = customAdapter.getItem(position);
+                String selectedTemp = hi.getDescription().replace(Constants.THUMBNAILS_FOLDER,
+                        Constants.ORIGINALS_FOLDER);
                 if (checked) {
                     nr++;
-                    //mSelectedRecords.add(hi.getId());
+                    selectedImages.add(selectedTemp);
 
                 } else {
                     nr--;
-                    //mSelectedRecords.remove(mSelectedRecords.indexOf(form.getId()));
-
+                    selectedEffects.remove(selectedImages.indexOf(selectedTemp));
                 }
                 mode.setTitle(nr + " " + getString(R.string.title_activity_image));
             }
@@ -243,15 +250,16 @@ public class MainActivity extends AppCompatActivity {
         File[] filelist = dir.listFiles();
         listSelfies.clear();
         try {
-            for (File f : filelist) { // do your stuff here }
-                RowData ld = new RowData();
-                ld.setTitle(f.getName());
-                ld.setDescription(f.getPath()+"/"+Constants.THUMBNAILS_FOLDER + "/"+f.getName());
-                ld.setImgResId(f.getPath()+"/"+Constants.THUMBNAILS_FOLDER + "/"+f.getName());
-                // Add this object into the ArrayList myList
-                listSelfies.add(ld);
-
-            }
+            if (filelist != null){
+                for (File f : filelist) { // do your stuff here }
+                    RowData ld = new RowData();
+                    ld.setTitle(f.getName());
+                    ld.setDescription(f.getPath() + "/" + Constants.THUMBNAILS_FOLDER + "/" + f.getName());
+                    ld.setImgResId(f.getPath() + "/" + Constants.THUMBNAILS_FOLDER + "/" + f.getName());
+                    // Add this object into the ArrayList myList
+                    listSelfies.add(ld);
+                }
+        }
         }catch (Throwable e) {
             e.printStackTrace();
         }
@@ -270,13 +278,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showDialogEffects(){
-        final CharSequence[] items = {" Easy "," Medium "," Hard "," Very Hard "};
-        // arraylist to keep the selected items
-        final ArrayList seletedItems=new ArrayList();
+        Resources res = getResources();
+        String[] effects =  res.getStringArray(R.array.effects_array);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getApplication().getBaseContext());
-        builder.setTitle("Select The Difficulty Level");
-        builder.setMultiChoiceItems(items, null,
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(getString(R.string.title_dialog_effects));
+        builder.setMultiChoiceItems(effects, null,
                 new DialogInterface.OnMultiChoiceClickListener() {
                     // indexSelected contains the index of item (of which checkbox checked)
                     @Override
@@ -285,11 +292,11 @@ public class MainActivity extends AppCompatActivity {
                         if (isChecked) {
                             // If the user checked the item, add it to the selected items
                             // write your code when user checked the checkbox
-                            seletedItems.add(indexSelected);
-                        } else if (seletedItems.contains(indexSelected)) {
+                            selectedEffects.add(indexSelected);
+                        } else if (selectedEffects.contains(indexSelected)) {
                             // Else, if the item is already in the array, remove it
                             // write your code when user Uchecked the checkbox
-                            seletedItems.remove(Integer.valueOf(indexSelected));
+                            selectedEffects.remove(Integer.valueOf(indexSelected));
                         }
                     }
                 })
@@ -299,6 +306,14 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int id) {
                         //  Your code when user clicked on OK
                         //  You can write the code  to save the selected item here
+                        Log.d("%%%%", selectedImages.get(0).toString());
+                        for (String selectedImage: selectedImages){
+                            for (Integer selectedEffect: selectedEffects){
+                                Log.d(">>>>>Selected image", selectedImage);
+                                Log.d(">>>>>Selected effect", String.valueOf(selectedEffect));
+                            }
+
+                        }
 
                     }
                 })
@@ -310,9 +325,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        dialogEffects = builder.create();//AlertDialog dialog;
-        dialogEffects.show();
+        Dialog dialog = builder.create();//AlertDialog dialog; create like this outside onClick
+        dialog.show();
     }
+
+
 
 
 

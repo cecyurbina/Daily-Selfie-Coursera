@@ -7,6 +7,7 @@
     <string name="title_activity_image">Image</string>
     <string name="action_effect">Effect</string>
     <string name="action_delete">Delete</string>
+    <string name="title_dialog_effects">Effects</string>
 
 
     <!-- Strings related to login -->
@@ -28,5 +29,11 @@
 
     <string name="hello_world">Hello world!</string>
 
+    <string-array name="effects_array">
+        <item>Noise</item>
+        <item>Blurring</item>
+        <item>Charcoal effect</item>
+        <item>Black and white</item>
+    </string-array>
 
 </resources>
