@@ -16,11 +16,13 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
+import com.dailyselfie.coursera.dailyselfiec.model.mediator.webdata.ImageServiceProxy;
 import com.dailyselfie.coursera.dailyselfiec.model.mediator.webdata.Video;
 import com.dailyselfie.coursera.dailyselfiec.model.mediator.webdata.VideoServiceProxy;
 import com.dailyselfie.coursera.dailyselfiec.model.mediator.webdata.VideoStatus;
 import com.dailyselfie.coursera.dailyselfiec.oauth.SecuredRestBuilder;
 import com.dailyselfie.coursera.dailyselfiec.oauth.UnsafeHttpsClient;
+import com.dailyselfie.coursera.dailyselfiec.presenter.ImageData;
 import com.dailyselfie.coursera.dailyselfiec.presenter.VideoData;
 import com.dailyselfie.coursera.dailyselfiec.presenter.VideoRating;
 import com.dailyselfie.coursera.dailyselfiec.utils.Constants;
@@ -58,6 +60,8 @@ public class ImageDataMediator {
      * Defines methods that communicate with the Video Service.
      */
     private VideoServiceProxy mVideoServiceProxy;
+    private ImageServiceProxy mImageServiceProxy;
+
 
     /**
      * Constructor that initializes the VideoDataMediator.
@@ -76,6 +80,16 @@ public class ImageDataMediator {
                 .setLogLevel(RestAdapter.LogLevel.FULL).build()
                 .create(VideoServiceProxy.class);
 
+        mImageServiceProxy = new SecuredRestBuilder()
+                .setLoginEndpoint(Constants.SERVER_URL
+                        + VideoServiceProxy.TOKEN_PATH)
+                .setUsername("xxxxx")//secret!
+                .setPassword("xxxxx")//secret!
+                .setClientId("mobile")
+                .setClient(new OkClient(UnsafeHttpsClient.getUnsafeOkHttpClient()))
+                .setEndpoint(Constants.SERVER_URL)
+                .setLogLevel(RestAdapter.LogLevel.FULL).build()
+                .create(ImageServiceProxy.class);
 
     }
 
@@ -92,6 +106,17 @@ public class ImageDataMediator {
                 .setEndpoint(Constants.SERVER_URL)
                 .setLogLevel(RestAdapter.LogLevel.FULL).build()
                 .create(VideoServiceProxy.class);
+
+        mImageServiceProxy = new SecuredRestBuilder()
+                .setLoginEndpoint(Constants.SERVER_URL
+                        + VideoServiceProxy.TOKEN_PATH)
+                .setUsername(aUser) //username from login activity
+                .setPassword(aPass) //pass from login activity
+                .setClientId("mobile")
+                .setClient(new OkClient(UnsafeHttpsClient.getUnsafeOkHttpClient()))
+                .setEndpoint(Constants.SERVER_URL)
+                .setLogLevel(RestAdapter.LogLevel.FULL).build()
+                .create(ImageServiceProxy.class);
 
     }
 
@@ -186,9 +211,9 @@ public class ImageDataMediator {
         }
     }
 
-    public void getData(Video video, Context context){
-        VideoData videoData = new VideoData(context, mVideoServiceProxy);
-        videoData.execute(video);
+    public void getData(Context context, File file){
+        ImageData imageData = new ImageData(context, file, mImageServiceProxy);
+        imageData.execute();
     }
 
     public void setRating(int position, Video video, Context context, VideoAdapter videoAdapter){

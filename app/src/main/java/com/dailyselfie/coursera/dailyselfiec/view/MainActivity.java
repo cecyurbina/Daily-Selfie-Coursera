@@ -1,6 +1,7 @@
 package com.dailyselfie.coursera.dailyselfiec.view;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -26,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dailyselfie.coursera.dailyselfiec.R;
+import com.dailyselfie.coursera.dailyselfiec.model.mediator.ImageDataMediator;
 import com.dailyselfie.coursera.dailyselfiec.utils.Constants;
 import com.dailyselfie.coursera.dailyselfiec.utils.ImageStorageUtils;
 import com.dailyselfie.coursera.dailyselfiec.view.ui.CustomAdapter;
@@ -46,6 +48,10 @@ public class MainActivity extends AppCompatActivity {
     // arraylist to keep the selected items
     final List<Integer> selectedEffects =new ArrayList();
     final List<String> selectedImages =new ArrayList();
+    private ImageDataMediator idm;
+    public static Context contextOfApplication;
+
+
 
 
 
@@ -56,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         initList();
+        contextOfApplication = getApplicationContext();
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -70,6 +77,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void initList(){
+        idm = new ImageDataMediator();
+
         listView = (ListView) findViewById(R.id.listView);
         getDataInList();
         customAdapter = new CustomAdapter(getApplicationContext(), listSelfies);
@@ -306,14 +315,19 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int id) {
                         //  Your code when user clicked on OK
                         //  You can write the code  to save the selected item here
-                        Log.d("%%%%", selectedImages.get(0).toString());
-                        for (String selectedImage: selectedImages){
-                            for (Integer selectedEffect: selectedEffects){
+                        List<String> tempSelectedImages = new ArrayList(selectedImages);
+                        List<Integer> tempSelectedEffects = new ArrayList(selectedEffects);
+                        for (String selectedImage: tempSelectedImages){
+                            for (Integer selectedEffect: tempSelectedEffects){
                                 Log.d(">>>>>Selected image", selectedImage);
                                 Log.d(">>>>>Selected effect", String.valueOf(selectedEffect));
+                                File file = new File(selectedImage);
+                                idm.getData(getApplicationContext(), file);
                             }
 
                         }
+                        selectedEffects.clear();
+                        selectedImages.clear();
 
                     }
                 })
@@ -330,8 +344,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
-
+    public static Context getContextOfApplication(){
+        return contextOfApplication;
+    }
 
 }

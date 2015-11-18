@@ -4,17 +4,25 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaScannerConnection;
 import android.media.ThumbnailUtils;
+import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import retrofit.client.Response;
 
 /**
  * Created by root on 15/11/15.
@@ -86,6 +94,13 @@ public class ImageStorageUtils {
         return mediaFile;
     }
 
+    /**
+     * save image from camera
+     * @param f
+     * @param context
+     * @param user
+     * @return
+     */
     public static File saveImageFromCamera(File f, Context context, String user){
         File mediaFile = getOutputMediaFile(ORIGINAL, f.getName(), context, user);
         File mediaFileThumb = getOutputMediaFile(THUMB, f.getName(), context, user);
@@ -105,6 +120,11 @@ public class ImageStorageUtils {
         return mediaFile;
     }
 
+    /**
+     *
+     * @param bm
+     * @param mediaFile
+     */
     public static void writeFile(Bitmap bm, File mediaFile){
         FileOutputStream fos = null;
         try {
@@ -119,6 +139,11 @@ public class ImageStorageUtils {
         }
 
     }
+
+    /**
+     * delete a folder with children
+     * @param fileOrDirectory
+     */
     public static void deleteRecursive(File fileOrDirectory) {
         if (fileOrDirectory.isDirectory())
             for (File child : fileOrDirectory.listFiles())
@@ -130,6 +155,11 @@ public class ImageStorageUtils {
         fileOrDirectory.delete();
     }
 
+    /**
+     *
+     * @param context
+     * @return
+     */
     public static boolean isLoggedIn(Context context){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
                 context);
@@ -141,6 +171,11 @@ public class ImageStorageUtils {
         return false;
     }
 
+    /**
+     * get current username
+     * @param context
+     * @return
+     */
     public static String getCurrentUser(Context context){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
                 context);
@@ -151,6 +186,10 @@ public class ImageStorageUtils {
         return Constants.ANONYMOUS_USER;
     }
 
+    /**
+     * locally logout
+     * @param context
+     */
     public static void logout(Context context){
         //erase token
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
@@ -159,6 +198,11 @@ public class ImageStorageUtils {
         prefs.edit().putString(Constants.USER, null).commit();
     }
 
+    /**
+     * get all folders by user
+     * @param context
+     * @return
+     */
     public static File getDirsByUser(Context context){
         String user = getCurrentUser(context);
         File mediaStorageDir = null;
@@ -170,6 +214,12 @@ public class ImageStorageUtils {
         return mediaStorageDir;
     }
 
+    /**
+     * get all images in a folder by user
+     * @param context
+     * @param nameImage
+     * @return
+     */
     public static File getImagesByUserAndNameImage(Context context, String nameImage){
         String user = getCurrentUser(context);
         File mediaStorageDir = null;
@@ -180,5 +230,75 @@ public class ImageStorageUtils {
         /*mediaStorageDir = new File(context.getFilesDir(),
                 root + "/"+Constants.THUMBNAILS_FOLDER);*/
         return mediaStorageDir;
+    }
+
+
+    /**
+     * save response video in DailySelfie folder
+     * @param context
+     * @param response
+     * @param videoName
+     * @return
+     */
+    public static File storeVideoInExternalDirectory(Context context,
+                                                     Response response,
+                                                     String videoName) {
+        // Try to get the File from the Directory where the Video
+        // is to be stored.
+        final File file =
+                getOutputMediaFile(MEDIA_TYPE_IMAGE);
+        if (file != null) {
+            try {
+                // Get the InputStream from the Response.
+                final InputStream inputStream =
+                        response.getBody().in();
+
+                // Get the OutputStream to the file
+                // where Video data is to be written.
+                final OutputStream outputStream =
+                        new FileOutputStream(file);
+
+                // Write the Video data to the File.
+                IOUtils.copy(inputStream,
+                        outputStream);
+
+                // Close the streams to free the Resources used by the
+                // stream.
+                outputStream.close();
+                inputStream.close();
+
+                // Always notify the MediaScanners after Downloading
+                // the Video, so that it is immediately available to
+                // the user.
+                notifyMediaScanners(context,
+                        file);
+                return file;
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return file;
+    }
+
+    /**
+     * Notifies the MediaScanners after Downloading the Video, so it
+     * is immediately available to the user.
+     */
+    private static void notifyMediaScanners(Context context,
+                                            File videoFile) {
+        // Tell the media scanner about the new file so that it is
+        // immediately available to the user.
+        MediaScannerConnection.scanFile
+                (context,
+                        new String[]{videoFile.toString()},
+                        null,
+                        new MediaScannerConnection.OnScanCompletedListener() {
+                            public void onScanCompleted(String path,
+                                                        Uri uri) {
+                            }
+                        });
     }
 }

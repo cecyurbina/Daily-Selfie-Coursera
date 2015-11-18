@@ -81,7 +81,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // Set up the login form.
         mUserView = (AutoCompleteTextView) findViewById(R.id.user);
         populateAutoComplete();
-
+        contextOfApplication = getApplicationContext();
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -384,5 +384,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     public static Context getContextOfApplication(){
         return contextOfApplication;
     }
+
 }
 

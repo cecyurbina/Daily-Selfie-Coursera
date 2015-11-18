@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import com.dailyselfie.coursera.dailyselfiec.view.MainActivity;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -96,6 +97,9 @@ public class SecuredRestBuilder extends RestAdapter.Builder {
 		@Override
 		public void intercept(RequestFacade request) {
 			Context applicationContext = LoginActivity.getContextOfApplication();
+			if (applicationContext == null) {
+				applicationContext = MainActivity.getContextOfApplication();
+			}
 			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
 					applicationContext);
 			//get token saved
