@@ -32,9 +32,13 @@
             android:name=".view.LoginActivity"
             android:label="@string/title_activity_login" >
         </activity>
-        <activity android:name=".view.ImageFullScreen"
+        <activity
+            android:name=".view.ImageFullScreen"
             android:label="@string/title_activity_image"
-            android:parentActivityName="com.dailyselfie.coursera.dailyselfiec.view.MainActivity" >
+            android:parentActivityName=".view.MainActivity" >
+        </activity>
+        <activity android:name=".view.ImageFolderActivity"
+            android:parentActivityName=".view.MainActivity">
         </activity>
     </application>
 

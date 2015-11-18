@@ -6,8 +6,8 @@
 
 
     <ImageView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:id="@+id/icon"
         android:layout_margin="5dp"
         android:background="@android:drawable/ic_menu_upload"
@@ -31,6 +31,8 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="Small Text"
+        android:textSize="10dp"
+        android:textColor="@android:color/secondary_text_light"
         android:id="@+id/secondLine"
         android:layout_below="@+id/firstLine"
         android:layout_toRightOf="@+id/icon"

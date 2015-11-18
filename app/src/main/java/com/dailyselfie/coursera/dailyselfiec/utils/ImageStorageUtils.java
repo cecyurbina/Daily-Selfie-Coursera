@@ -59,15 +59,14 @@ public class ImageStorageUtils {
      */
     public static File getOutputMediaFile(int type, String name, Context context, String user) {
         File mediaStorageDir = null;
-        String root = "images/" + String.valueOf(user);
+        String root = Constants.IMAGES_FOLDER+"/" + String.valueOf(user) + "/" + name;
         if (type == ORIGINAL) {
             mediaStorageDir = new File(context.getFilesDir(),
-                    root + "/originals");
+                    root + "/"+Constants.ORIGINALS_FOLDER);
         } else if (type == THUMB) {
             mediaStorageDir = new File(context.getFilesDir(),
-                    root + "/thumbnails");
+                    root + "/"+Constants.THUMBNAILS_FOLDER);
         }
-
 
         // This location works best if you want the created images to be shared
         // between applications and persist after your app has been uninstalled.
@@ -84,8 +83,6 @@ public class ImageStorageUtils {
         File mediaFile;
         mediaFile = new File(mediaStorageDir.getPath() + File.separator +
                 name);
-
-
         return mediaFile;
     }
 
@@ -137,7 +134,7 @@ public class ImageStorageUtils {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
                 context);
         //get token saved
-        String user = prefs.getString("user", null);
+        String user = prefs.getString(Constants.USER, null);
         if (user != null) {
             return true;
         }
@@ -147,7 +144,7 @@ public class ImageStorageUtils {
     public static String getCurrentUser(Context context){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
                 context);
-        String user = prefs.getString("user", null);
+        String user = prefs.getString(Constants.USER, null);
         if (user != null) {
             return user;
         }
@@ -162,12 +159,26 @@ public class ImageStorageUtils {
         prefs.edit().putString(Constants.USER, null).commit();
     }
 
-    public static File getDirThumbs(Context context){
+    public static File getDirsByUser(Context context){
         String user = getCurrentUser(context);
         File mediaStorageDir = null;
-        String root = "images/" + String.valueOf(user);
+        String root = Constants.IMAGES_FOLDER +"/" + String.valueOf(user);
         mediaStorageDir = new File(context.getFilesDir(),
-                    root + "/thumbnails");
+                    root);
+        /*mediaStorageDir = new File(context.getFilesDir(),
+                root + "/"+Constants.THUMBNAILS_FOLDER);*/
+        return mediaStorageDir;
+    }
+
+    public static File getImagesByUserAndNameImage(Context context, String nameImage){
+        String user = getCurrentUser(context);
+        File mediaStorageDir = null;
+        String root = Constants.IMAGES_FOLDER +"/" + String.valueOf(user) + "/" + nameImage +
+                "/" + Constants.THUMBNAILS_FOLDER;
+        mediaStorageDir = new File(context.getFilesDir(),
+                root);
+        /*mediaStorageDir = new File(context.getFilesDir(),
+                root + "/"+Constants.THUMBNAILS_FOLDER);*/
         return mediaStorageDir;
     }
 }
