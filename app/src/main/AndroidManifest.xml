@@ -40,6 +40,7 @@
         <activity android:name=".view.ImageFolderActivity"
             android:parentActivityName=".view.MainActivity">
         </activity>
+        <receiver android:name=".utils.AlarmReceiver"/>
     </application>
 
 </manifest>

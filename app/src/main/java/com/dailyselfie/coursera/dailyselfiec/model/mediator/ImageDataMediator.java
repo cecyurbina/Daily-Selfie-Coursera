@@ -12,9 +12,11 @@ import retrofit.client.OkClient;
 import retrofit.client.Response;
 import retrofit.mime.TypedFile;
 
+import android.app.NotificationManager;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.dailyselfie.coursera.dailyselfiec.model.mediator.webdata.ImageServiceProxy;
@@ -212,8 +214,9 @@ public class ImageDataMediator {
         }
     }
 
-    public void getData(Context context, File file, int effect){
-        ImageData imageData = new ImageData(context, file, mImageServiceProxy, effect);
+    public void getData(Context context, File file, int effect, NotificationCompat.Builder mBuilder, NotificationManager mNotifyManager, int totalImages, int i){
+        ImageData imageData = new ImageData(context, file, mImageServiceProxy, effect, mBuilder,
+                mNotifyManager, totalImages, i);
         //imageData.execute();
         imageData.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }

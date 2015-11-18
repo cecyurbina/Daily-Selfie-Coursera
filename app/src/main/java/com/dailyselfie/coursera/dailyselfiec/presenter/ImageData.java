@@ -1,9 +1,11 @@
 package com.dailyselfie.coursera.dailyselfiec.presenter;
 
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v4.app.NotificationCompat;
 
 import com.dailyselfie.coursera.dailyselfiec.model.mediator.webdata.ImageServiceProxy;
 import com.dailyselfie.coursera.dailyselfiec.model.mediator.webdata.VideoServiceProxy;
@@ -28,16 +30,25 @@ public class ImageData extends AsyncTask<Void, Void, Void> {
     private File mFile = null;
     private String mFileName = null;
     private int mEffect = 1;
+    private NotificationCompat.Builder mBuilder;
+    NotificationManager mNotifyManager;
+    int mTotalImages;
+    int position;
 
 
     public ImageData(Context aContext, File aFile, ImageServiceProxy aImageServiceProxy,
-                     int aEffect) {
+                     int aEffect, NotificationCompat.Builder aBuilder,
+                     NotificationManager aNotifyManager, int totalImages, int i) {
         super();
         mFile = aFile;
+        mTotalImages = totalImages;
+        position = i;
         mImageServiceProxy = aImageServiceProxy;
         mFileName = mFile.getName();
         mContext = aContext;
         mEffect = aEffect;
+        mBuilder = aBuilder;
+        mNotifyManager = aNotifyManager;
 
     }
 
@@ -59,11 +70,19 @@ public class ImageData extends AsyncTask<Void, Void, Void> {
     protected void onPostExecute(Void result) {
         ImageStorageUtils.saveImageFromCamera(mFile, mContext,
                 ImageStorageUtils.getCurrentUser(mContext), mFileName);
+        int progress = (int) Math.ceil((position * 100)/mTotalImages);
+        if (mTotalImages <= position+ 1) {
+            mBuilder.setContentText("Finish");
+            mBuilder.setSmallIcon(android.R.drawable.stat_sys_download_done);
+            mNotifyManager.cancel(1011);
+        }
+        mNotifyManager.notify(1011, mBuilder.build());
         if (mFile != null) {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.fromFile(mFile));
+        //?show  image response intent
+        /* Intent intent = new Intent(Intent.ACTION_VIEW, Uri.fromFile(mFile));
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setDataAndType(Uri.fromFile(mFile), "image/*");
-            mContext.startActivity(intent);
+            intent.setDataAndType(Uri.fromFile(mFile), "image*//*");
+            mContext.startActivity(intent);*/
         }
 
     }

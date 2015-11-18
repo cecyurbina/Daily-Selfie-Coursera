@@ -1,6 +1,9 @@
 package com.dailyselfie.coursera.dailyselfiec.view;
 
+import android.app.AlarmManager;
 import android.app.Dialog;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,6 +14,8 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -28,6 +33,7 @@ import android.widget.Toast;
 
 import com.dailyselfie.coursera.dailyselfiec.R;
 import com.dailyselfie.coursera.dailyselfiec.model.mediator.ImageDataMediator;
+import com.dailyselfie.coursera.dailyselfiec.utils.AlarmReceiver;
 import com.dailyselfie.coursera.dailyselfiec.utils.Constants;
 import com.dailyselfie.coursera.dailyselfiec.utils.ImageStorageUtils;
 import com.dailyselfie.coursera.dailyselfiec.view.ui.CustomAdapter;
@@ -35,6 +41,8 @@ import com.dailyselfie.coursera.dailyselfiec.view.ui.RowData;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -50,6 +58,11 @@ public class MainActivity extends AppCompatActivity {
     final List<String> selectedImages =new ArrayList();
     private ImageDataMediator idm;
     public static Context contextOfApplication;
+    NotificationManager mNotifyManager;
+    NotificationCompat.Builder mBuilder;
+    Calendar calendar;
+    private PendingIntent alarmIntent;
+    AlarmManager alarmManager = null;
 
 
     @Override
@@ -60,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         initList();
         contextOfApplication = getApplicationContext();
-
+        setupAlarm();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -71,6 +84,26 @@ public class MainActivity extends AppCompatActivity {
                 showCameraIntent();
             }
         });
+    }
+
+    private void setupAlarm(){
+        if (alarmManager != null) {
+            alarmManager.cancel(alarmIntent);
+        }
+        calendar = Calendar.getInstance();
+        Long time = new GregorianCalendar().getTimeInMillis()+60*06*24*1000;
+        Intent intentAlarm = new Intent(this, AlarmReceiver.class);
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmIntent=PendingIntent.getBroadcast(this, 1, intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.set(AlarmManager.RTC_WAKEUP,time, alarmIntent);
+        //test with two minutes
+        long minute = 60000;
+        long twominutes = 120000;
+        long day = 1000*60*60*24;
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),twominutes, alarmIntent);
+
+
+
     }
 
     public void initList(){
@@ -86,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
                                     int position, long id) {
                 // selected item
                 RowData selectedRow = listSelfies.get(position);
-                String selected = ((TextView)view.findViewById(R.id.secondLine)).getText().toString();
+                String selected = ((TextView) view.findViewById(R.id.secondLine)).getText().toString();
                 showImage(selected, selectedRow.getTitle());
 
 
@@ -329,11 +362,20 @@ public class MainActivity extends AppCompatActivity {
                         //  You can write the code  to save the selected item here
                         List<String> tempSelectedImages = new ArrayList(selectedImages);
                         List<Integer> tempSelectedEffects = new ArrayList(selectedEffects);
-                        for (String selectedImage: tempSelectedImages){
-                            for (Integer selectedEffect: tempSelectedEffects){
+                        int totalImages = 0;
+                        if (tempSelectedEffects.size() > 0 && tempSelectedImages.size() > 0) {
+                            totalImages = tempSelectedEffects.size() + tempSelectedImages.size();
+                            createNotification(totalImages);
+                        }
+                        int i = 0;
+                        for (String selectedImage : tempSelectedImages) {
+                            for (Integer selectedEffect : tempSelectedEffects) {
+                                i ++;
                                 File file = new File(selectedImage);
                                 //get images with filters
-                                idm.getData(getApplicationContext(), file, selectedEffect);
+                                idm.getData(getApplicationContext(), file, selectedEffect, mBuilder,
+                                        mNotifyManager, totalImages, i);
+
                             }
 
                         }
@@ -382,5 +424,24 @@ public class MainActivity extends AppCompatActivity {
         Toast toast = Toast.makeText(context, text, duration);
         toast.show();
     }
+
+    private void createNotification(int totalNotification){
+        mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mBuilder = new NotificationCompat.Builder(MainActivity.this);
+        mBuilder.setAutoCancel(true);
+        Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(),
+                1, notificationIntent,
+                PendingIntent.FLAG_CANCEL_CURRENT);
+        mBuilder.setContentIntent(contentIntent);
+        mBuilder.setContentTitle("Download")
+                .setContentText("Download in progress")
+                .setSmallIcon(android.R.drawable.stat_sys_download);
+        mNotifyManager.notify(1011, mBuilder.build());
+    }
+
+
+
+
 
 }
