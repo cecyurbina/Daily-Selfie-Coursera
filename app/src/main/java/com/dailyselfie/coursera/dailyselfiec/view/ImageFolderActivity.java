@@ -1,9 +1,7 @@
 package com.dailyselfie.coursera.dailyselfiec.view;
 
 import android.annotation.TargetApi;
-import android.app.ActionBar;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
@@ -29,11 +27,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * show images in directory
+ */
 public class ImageFolderActivity extends AppCompatActivity {
     private ListView listView;
     private List<RowData> listSelfies = new ArrayList<>();
     private CustomAdapter customAdapter;
     private String fileName;
+    private List<String> mSelectedFiles = new ArrayList<String>();
 
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -55,7 +57,7 @@ public class ImageFolderActivity extends AppCompatActivity {
     public void initList(){
         listView = (ListView) findViewById(R.id.listViewImages);
         getDataInList();
-        customAdapter = new CustomAdapter(getApplicationContext(), listSelfies);
+        customAdapter = new CustomAdapter(getApplicationContext(), listSelfies, true);
 
         listView.setAdapter(customAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -108,7 +110,8 @@ public class ImageFolderActivity extends AppCompatActivity {
                                 Toast.LENGTH_SHORT).show();
 
                         break;
-                    case R.id.action_settings:
+                    case R.id.action_delete:
+                        deleteFiles();
                         break;
                 }
                 mode.finish();
@@ -123,20 +126,37 @@ public class ImageFolderActivity extends AppCompatActivity {
             @Override
             public void onItemCheckedStateChanged(ActionMode mode,
                                                   int position, long id, boolean checked) {
-                RowData hi = customAdapter.getItem(position);
-                if (checked) {
-                    nr++;
-                    //mSelectedRecords.add(hi.getId());
+                RowData selTemp = customAdapter.getItem(position);
+                //inside folder cant delete original image
+                //original image is the 0 position
+                if (position != 0) {
+                    if (checked) {
+                        nr++;
+                        mSelectedFiles.add(selTemp.getDescription());
 
-                } else {
-                    nr--;
-                    //mSelectedRecords.remove(mSelectedRecords.indexOf(form.getId()));
+                    } else {
+                        nr--;
+                        mSelectedFiles.remove(mSelectedFiles.indexOf(selTemp.getDescription()));
 
+                    }
                 }
+
                 mode.setTitle(nr + " " + getString(R.string.title_activity_image));
             }
         });
+    }
 
+    private void deleteFiles(){
+        for (String selectedImage: mSelectedFiles){
+            File mediaFile = new File(selectedImage);
+            ImageStorageUtils.deleteRecursive(mediaFile);
+            uploadDataInList();
+        }
+    }
+
+    private void uploadDataInList() {
+        getDataInList();
+        customAdapter.notifyDataSetChanged();
     }
 
     public void showImage(String aSelected){

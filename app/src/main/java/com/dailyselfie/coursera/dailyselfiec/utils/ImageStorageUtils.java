@@ -33,8 +33,10 @@ public class ImageStorageUtils {
     public static int ORIGINAL = 0;
     public static int THUMB = 1;
 
-    /** Create a File for saving an image or video */
-    public static File getOutputMediaFile(int type){
+    /**
+     * Create a File for saving an image or video
+     */
+    public static File getOutputMediaFile(int type) {
         // To be safe, you should check that the SDCard is mounted
         // using Environment.getExternalStorageState() before doing this.
 
@@ -44,8 +46,8 @@ public class ImageStorageUtils {
         // between applications and persist after your app has been uninstalled.
 
         // Create the storage directory if it does not exist
-        if (! mediaStorageDir.exists()){
-            if (! mediaStorageDir.mkdirs()){
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
                 return null;
             }
         }
@@ -53,9 +55,9 @@ public class ImageStorageUtils {
         // Create a media file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         File mediaFile;
-        if (type == MEDIA_TYPE_IMAGE){
+        if (type == MEDIA_TYPE_IMAGE) {
             mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                    "IMG_"+ timeStamp + ".jpg");
+                    "IMG_" + timeStamp + ".jpg");
         } else {
             return null;
         }
@@ -67,13 +69,13 @@ public class ImageStorageUtils {
      */
     public static File getOutputMediaFile(int type, String name, Context context, String user) {
         File mediaStorageDir = null;
-        String root = Constants.IMAGES_FOLDER+"/" + String.valueOf(user) + "/" + name;
+        String root = Constants.IMAGES_FOLDER + "/" + String.valueOf(user) + "/" + name;
         if (type == ORIGINAL) {
             mediaStorageDir = new File(context.getFilesDir(),
-                    root + "/"+Constants.ORIGINALS_FOLDER);
+                    root + "/" + Constants.ORIGINALS_FOLDER);
         } else if (type == THUMB) {
             mediaStorageDir = new File(context.getFilesDir(),
-                    root + "/"+Constants.THUMBNAILS_FOLDER);
+                    root + "/" + Constants.THUMBNAILS_FOLDER);
         }
 
         // This location works best if you want the created images to be shared
@@ -95,13 +97,57 @@ public class ImageStorageUtils {
     }
 
     /**
+     * Get directory by name and user
+     */
+    public static File getOutputMediaFileDir(String name, String user) {
+        File mediaStorageDir = null;
+        String root = Constants.IMAGES_FOLDER + "/" + String.valueOf(user) + "/" + name;
+        mediaStorageDir = new File(root);
+        return mediaStorageDir;
+    }
+
+    /**
+     * Create a File for saving an image in internal folders
+     */
+    public static File getOutputMediaFile(int type, String originalName, Context context,
+                                          String user, String newName) {
+        File mediaStorageDir = null;
+        String root = Constants.IMAGES_FOLDER + "/" + String.valueOf(user) + "/" + originalName;
+        if (type == ORIGINAL) {
+            mediaStorageDir = new File(context.getFilesDir(),
+                    root + "/" + Constants.ORIGINALS_FOLDER);
+        } else if (type == THUMB) {
+            mediaStorageDir = new File(context.getFilesDir(),
+                    root + "/" + Constants.THUMBNAILS_FOLDER);
+        }
+
+        // This location works best if you want the created images to be shared
+        // between applications and persist after your app has been uninstalled.
+
+        // Create the storage directory if it does not exist
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Log.d("CreateDirectory", "failed to create directory");
+                return null;
+            }
+        }
+
+        // Create a media file name
+        File mediaFile;
+        mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+                newName);
+        return mediaFile;
+    }
+
+    /**
      * save image from camera
+     *
      * @param f
      * @param context
      * @param user
      * @return
      */
-    public static File saveImageFromCamera(File f, Context context, String user){
+    public static File saveImageFromCamera(File f, Context context, String user) {
         File mediaFile = getOutputMediaFile(ORIGINAL, f.getName(), context, user);
         File mediaFileThumb = getOutputMediaFile(THUMB, f.getName(), context, user);
 
@@ -110,22 +156,48 @@ public class ImageStorageUtils {
             Bitmap bm = BitmapFactory.decodeFile(f.getAbsolutePath());
             final BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = 8;
-            Bitmap bmResized = BitmapFactory.decodeFile(f.getPath(),options);
+            Bitmap bmResized = BitmapFactory.decodeFile(f.getPath(), options);
             Bitmap resized = ThumbnailUtils.extractThumbnail(bmResized, 50, 50);
             writeFile(resized, mediaFileThumb);
             writeFile(bm, mediaFile);
-        } catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return mediaFile;
     }
 
     /**
+     * save image from camera
      *
+     * @param f
+     * @param context
+     * @param user
+     * @return
+     */
+    public static File saveImageFromCamera(File f, Context context, String user, String originalName) {
+        File mediaFile = getOutputMediaFile(ORIGINAL, originalName, context, user, f.getName());
+        File mediaFileThumb = getOutputMediaFile(THUMB, originalName, context, user, f.getName());
+
+        FileOutputStream fos = null;
+        try {
+            Bitmap bm = BitmapFactory.decodeFile(f.getAbsolutePath());
+            final BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = 8;
+            Bitmap bmResized = BitmapFactory.decodeFile(f.getPath(), options);
+            Bitmap resized = ThumbnailUtils.extractThumbnail(bmResized, 50, 50);
+            writeFile(resized, mediaFileThumb);
+            writeFile(bm, mediaFile);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return mediaFile;
+    }
+
+    /**
      * @param bm
      * @param mediaFile
      */
-    public static void writeFile(Bitmap bm, File mediaFile){
+    public static void writeFile(Bitmap bm, File mediaFile) {
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(mediaFile);
@@ -142,25 +214,26 @@ public class ImageStorageUtils {
 
     /**
      * delete a folder with children
+     *
      * @param fileOrDirectory
      */
     public static void deleteRecursive(File fileOrDirectory) {
-        if (fileOrDirectory.isDirectory())
-            for (File child : fileOrDirectory.listFiles())
-            {
+
+        if (fileOrDirectory.isDirectory()) {
+            for (File child : fileOrDirectory.listFiles()) {
                 child.delete();
                 deleteRecursive(child);
             }
+        }
 
         fileOrDirectory.delete();
     }
 
     /**
-     *
      * @param context
      * @return
      */
-    public static boolean isLoggedIn(Context context){
+    public static boolean isLoggedIn(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
                 context);
         //get token saved
@@ -173,10 +246,11 @@ public class ImageStorageUtils {
 
     /**
      * get current username
+     *
      * @param context
      * @return
      */
-    public static String getCurrentUser(Context context){
+    public static String getCurrentUser(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
                 context);
         String user = prefs.getString(Constants.USER, null);
@@ -188,9 +262,10 @@ public class ImageStorageUtils {
 
     /**
      * locally logout
+     *
      * @param context
      */
-    public static void logout(Context context){
+    public static void logout(Context context) {
         //erase token
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
                 context);
@@ -200,15 +275,16 @@ public class ImageStorageUtils {
 
     /**
      * get all folders by user
+     *
      * @param context
      * @return
      */
-    public static File getDirsByUser(Context context){
+    public static File getDirsByUser(Context context) {
         String user = getCurrentUser(context);
         File mediaStorageDir = null;
-        String root = Constants.IMAGES_FOLDER +"/" + String.valueOf(user);
+        String root = Constants.IMAGES_FOLDER + "/" + String.valueOf(user);
         mediaStorageDir = new File(context.getFilesDir(),
-                    root);
+                root);
         /*mediaStorageDir = new File(context.getFilesDir(),
                 root + "/"+Constants.THUMBNAILS_FOLDER);*/
         return mediaStorageDir;
@@ -216,14 +292,15 @@ public class ImageStorageUtils {
 
     /**
      * get all images in a folder by user
+     *
      * @param context
      * @param nameImage
      * @return
      */
-    public static File getImagesByUserAndNameImage(Context context, String nameImage){
+    public static File getImagesByUserAndNameImage(Context context, String nameImage) {
         String user = getCurrentUser(context);
         File mediaStorageDir = null;
-        String root = Constants.IMAGES_FOLDER +"/" + String.valueOf(user) + "/" + nameImage +
+        String root = Constants.IMAGES_FOLDER + "/" + String.valueOf(user) + "/" + nameImage +
                 "/" + Constants.THUMBNAILS_FOLDER;
         mediaStorageDir = new File(context.getFilesDir(),
                 root);
@@ -235,6 +312,7 @@ public class ImageStorageUtils {
 
     /**
      * save response video in DailySelfie folder
+     *
      * @param context
      * @param response
      * @param videoName

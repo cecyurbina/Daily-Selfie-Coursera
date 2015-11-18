@@ -52,9 +52,6 @@ public class MainActivity extends AppCompatActivity {
     public static Context contextOfApplication;
 
 
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
         listView = (ListView) findViewById(R.id.listView);
         getDataInList();
-        customAdapter = new CustomAdapter(getApplicationContext(), listSelfies);
+        customAdapter = new CustomAdapter(getApplicationContext(), listSelfies, false);
 
         listView.setAdapter(customAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -89,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
                                     int position, long id) {
                 // selected item
                 RowData selectedRow = listSelfies.get(position);
-                String selected = ((TextView) view.findViewById(R.id.secondLine)).getText().toString();
+                String selected = ((TextView)view.findViewById(R.id.secondLine)).getText().toString();
                 showImage(selected, selectedRow.getTitle());
 
 
@@ -132,12 +129,15 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.LENGTH_SHORT).show();
 
                         break;
-                    case R.id.action_settings:
-                        break;
                     case R.id.action_effect:
-                        showDialogEffects();
+                        if (ImageStorageUtils.isLoggedIn(getApplicationContext())) {
+                            showDialogEffects();
+                        } else {
+                            showAlert();
+                        }
                         break;
-
+                    case R.id.action_delete:
+                        deleteFolder();
                 }
                 mode.finish();
                 return false;
@@ -157,10 +157,9 @@ public class MainActivity extends AppCompatActivity {
                 if (checked) {
                     nr++;
                     selectedImages.add(selectedTemp);
-
                 } else {
                     nr--;
-                    selectedEffects.remove(selectedImages.indexOf(selectedTemp));
+                    selectedImages.remove(selectedImages.indexOf(selectedTemp));
                 }
                 mode.setTitle(nr + " " + getString(R.string.title_activity_image));
             }
@@ -182,17 +181,14 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
         if (id == R.id.action_login){
             if (ImageStorageUtils.isLoggedIn(getApplicationContext())) {
                 ImageStorageUtils.logout(getApplicationContext());
-                uploadDataInList();
+                updateDataInList();
                 invalidateOptionsMenu();
             } else {
-                Intent intent = new Intent(getApplication().getApplicationContext(), LoginActivity.class);
+                Intent intent = new Intent(getApplication().getApplicationContext(),
+                        LoginActivity.class);
                 startActivityForResult(intent, LOGIN_REQUEST_CODE);
             }
 
@@ -201,6 +197,9 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * open camera view
+     */
     private void showCameraIntent(){
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
@@ -232,15 +231,11 @@ public class MainActivity extends AppCompatActivity {
             String user;
             user = ImageStorageUtils.getCurrentUser(getApplicationContext());
             ImageStorageUtils.saveImageFromCamera(f, getApplicationContext(), user);
-            uploadDataInList();
+            updateDataInList();
         }
         if (requestCode == LOGIN_REQUEST_CODE) {
-            uploadDataInList();
+            updateDataInList();
         }
-
-            /*photoThumb = Utilities.getThumbnailFromFile(fileUri.getPath().toString());
-            Utilities.saveBitmapToFile(photoThumb, nameFile);
-            uploadDataInList();*/
     }
 
     @Override
@@ -254,6 +249,9 @@ public class MainActivity extends AppCompatActivity {
         return super.onPrepareOptionsMenu(menu);
     }
 
+    /**
+     * get all images by user to put in list
+     */
     private void getDataInList() {
         File dir = ImageStorageUtils.getDirsByUser(getApplicationContext());
         File[] filelist = dir.listFiles();
@@ -263,8 +261,10 @@ public class MainActivity extends AppCompatActivity {
                 for (File f : filelist) { // do your stuff here }
                     RowData ld = new RowData();
                     ld.setTitle(f.getName());
-                    ld.setDescription(f.getPath() + "/" + Constants.THUMBNAILS_FOLDER + "/" + f.getName());
-                    ld.setImgResId(f.getPath() + "/" + Constants.THUMBNAILS_FOLDER + "/" + f.getName());
+                    ld.setDescription(f.getPath() + "/" + Constants.THUMBNAILS_FOLDER
+                            + "/" + f.getName());
+                    ld.setImgResId(f.getPath() + "/" + Constants.THUMBNAILS_FOLDER
+                            + "/" + f.getName());
                     // Add this object into the ArrayList myList
                     listSelfies.add(ld);
                 }
@@ -275,23 +275,35 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void uploadDataInList() {
+    /**
+     * update list
+     */
+    private void updateDataInList() {
         getDataInList();
         customAdapter.notifyDataSetChanged();
     }
 
+    /**
+     * open image in activity
+     * @param aSelected
+     * @param fileName
+     */
     public void showImage(String aSelected, String fileName){
         Intent intent = new Intent(this, ImageFolderActivity.class);
         intent.putExtra("fileName", fileName);
         startActivity(intent);
     }
 
+    /**
+     * show dialog with effects
+     */
     private void showDialogEffects(){
         Resources res = getResources();
         String[] effects =  res.getStringArray(R.array.effects_array);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.title_dialog_effects));
+        builder.setCancelable(false);
         builder.setMultiChoiceItems(effects, null,
                 new DialogInterface.OnMultiChoiceClickListener() {
                     // indexSelected contains the index of item (of which checkbox checked)
@@ -319,10 +331,9 @@ public class MainActivity extends AppCompatActivity {
                         List<Integer> tempSelectedEffects = new ArrayList(selectedEffects);
                         for (String selectedImage: tempSelectedImages){
                             for (Integer selectedEffect: tempSelectedEffects){
-                                Log.d(">>>>>Selected image", selectedImage);
-                                Log.d(">>>>>Selected effect", String.valueOf(selectedEffect));
                                 File file = new File(selectedImage);
-                                idm.getData(getApplicationContext(), file);
+                                //get images with filters
+                                idm.getData(getApplicationContext(), file, selectedEffect);
                             }
 
                         }
@@ -335,7 +346,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
                         //  Your code when user clicked on Cancel
-
+                        selectedEffects.clear();
+                        selectedImages.clear();
                     }
                 });
 
@@ -343,9 +355,32 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    /**
+     * delete folders
+     */
+    private void deleteFolder(){
+        for (String selectedImage: selectedImages){
+            File mediaFile = new File(selectedImage);
+            mediaFile = mediaFile.getParentFile().getParentFile();
+            ImageStorageUtils.deleteRecursive(mediaFile);
+            updateDataInList();
+        }
+    }
+
 
     public static Context getContextOfApplication(){
         return contextOfApplication;
+    }
+
+    /**
+     * show alert to anonymous users
+     */
+    private void showAlert(){
+        Context context = getApplicationContext();
+        CharSequence text = "Please login to apply effects";
+        int duration = Toast.LENGTH_LONG;
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
     }
 
 }

@@ -37,4 +37,12 @@
         android:layout_below="@+id/firstLine"
         android:layout_toRightOf="@+id/icon"
         android:layout_toEndOf="@+id/icon" />
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/imageView2"
+        android:visibility="gone"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

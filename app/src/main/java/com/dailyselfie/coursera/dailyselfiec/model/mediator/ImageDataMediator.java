@@ -14,6 +14,7 @@ import retrofit.mime.TypedFile;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.dailyselfie.coursera.dailyselfiec.model.mediator.webdata.ImageServiceProxy;
@@ -211,9 +212,10 @@ public class ImageDataMediator {
         }
     }
 
-    public void getData(Context context, File file){
-        ImageData imageData = new ImageData(context, file, mImageServiceProxy);
-        imageData.execute();
+    public void getData(Context context, File file, int effect){
+        ImageData imageData = new ImageData(context, file, mImageServiceProxy, effect);
+        //imageData.execute();
+        imageData.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     public void setRating(int position, Video video, Context context, VideoAdapter videoAdapter){

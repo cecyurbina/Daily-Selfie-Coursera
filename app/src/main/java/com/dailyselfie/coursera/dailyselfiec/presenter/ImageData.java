@@ -25,15 +25,20 @@ import retrofit.mime.TypedFile;
 public class ImageData extends AsyncTask<Void, Void, Void> {
     private ImageServiceProxy mImageServiceProxy;
     private Context mContext;
-    private File mFile =  null;
+    private File mFile = null;
     private String mFileName = null;
+    private int mEffect = 1;
 
-    public ImageData(Context aContext, File aFile, ImageServiceProxy aImageServiceProxy){
+
+    public ImageData(Context aContext, File aFile, ImageServiceProxy aImageServiceProxy,
+                     int aEffect) {
         super();
         mFile = aFile;
         mImageServiceProxy = aImageServiceProxy;
         mFileName = mFile.getName();
         mContext = aContext;
+        mEffect = aEffect;
+
     }
 
     @Override
@@ -41,7 +46,7 @@ public class ImageData extends AsyncTask<Void, Void, Void> {
         TypedFile typedFile = new TypedFile("image/*", mFile);
 
         try {
-            Response response = mImageServiceProxy.setImageData(1, typedFile);
+            Response response = mImageServiceProxy.setImageData(mEffect, typedFile);
             mFile = ImageStorageUtils.storeVideoInExternalDirectory(mContext, response, "");
             System.out.println(response.getStatus());
         } catch (RetrofitError e) {
@@ -52,7 +57,9 @@ public class ImageData extends AsyncTask<Void, Void, Void> {
 
     @Override
     protected void onPostExecute(Void result) {
-        if (mFile != null){
+        ImageStorageUtils.saveImageFromCamera(mFile, mContext,
+                ImageStorageUtils.getCurrentUser(mContext), mFileName);
+        if (mFile != null) {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.fromFile(mFile));
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.setDataAndType(Uri.fromFile(mFile), "image/*");

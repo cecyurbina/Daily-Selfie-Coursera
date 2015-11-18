@@ -34,6 +34,16 @@
         <item>Blurring</item>
         <item>Charcoal effect</item>
         <item>Black and white</item>
+        <item>Edge</item>
+        <item>Solarize</item>
+
     </string-array>
+
+    <string name="user_x">admin</string>
+    <string name="pass_x">pass</string>
+    <string name="user_y">user0</string>
+    <string name="pass_y">pass</string>
+    <string name="user_z">user3</string>
+    <string name="pass_z">pass</string>
 
 </resources>

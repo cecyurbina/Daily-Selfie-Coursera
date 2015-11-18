@@ -3,6 +3,7 @@ package com.dailyselfie.coursera.dailyselfiec.view.ui;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,12 +24,14 @@ public class CustomAdapter extends BaseAdapter {
     List<RowData> myList;
     LayoutInflater inflater;
     Context context;
+    boolean inFolder;
 
 
-    public CustomAdapter(Context context, List<RowData> myList) {
+    public CustomAdapter(Context context, List<RowData> myList, boolean aInFolder) {
         this.myList = myList;
         this.context = context;
         inflater = LayoutInflater.from(this.context);        // only context can also be used
+        inFolder = aInFolder;
     }
 
     @Override
@@ -60,8 +63,22 @@ public class CustomAdapter extends BaseAdapter {
 
         mViewHolder.tvTitle = detail(convertView, R.id.firstLine, myList.get(position).getTitle());
         mViewHolder.tvDesc  = detail(convertView, R.id.secondLine,  myList.get(position).getDescription());
-        mViewHolder.ivIcon  = detailI(convertView, R.id.icon,  myList.get(position).getImgResId());
+        mViewHolder.ivIcon  = detailI(convertView, R.id.icon, myList.get(position).getImgResId());
+        mViewHolder.bigImage  = detailI(convertView, R.id.imageView2,  myList.get(position).getImgResId());
+        if (inFolder){
+            if (position == 0) {
+                mViewHolder.bigImage.setVisibility(View.VISIBLE);
+                mViewHolder.tvTitle.setVisibility(View.GONE);
+                mViewHolder.tvDesc.setVisibility(View.GONE);
+                mViewHolder.ivIcon.setVisibility(View.GONE);
 
+            } else {
+                mViewHolder.bigImage.setVisibility(View.GONE);
+                mViewHolder.tvTitle.setVisibility(View.VISIBLE);
+                mViewHolder.tvDesc.setVisibility(View.VISIBLE);
+                mViewHolder.ivIcon.setVisibility(View.VISIBLE);
+            }
+        }
         return convertView;
     }
 
@@ -83,5 +100,6 @@ public class CustomAdapter extends BaseAdapter {
     private class MyViewHolder {
         TextView tvTitle, tvDesc;
         ImageView ivIcon;
+        ImageView bigImage;
     }
 }
